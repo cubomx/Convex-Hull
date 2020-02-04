@@ -88,13 +88,10 @@ def main():
     convex_h.append(angles.pop(0)[0].vector)
     convex_h.append(angles.pop(0)[0].vector)
     actual = angles.pop(0)[0].vector
-    index = 0
-    point_idx = 0
     while 1:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
         screen.fill(white)
-
 
         while True:
             pygame.draw.line(screen, yellow, (convex_h[-1].coords[0], convex_h[-1].coords[1]), (actual.coords[0], actual.coords[1]))
@@ -108,8 +105,7 @@ def main():
                 else:
                     break
             break
-        if len(angles) == 0:
-            convex_h.append(actual)
+        if len(angles) == 0 and actual == convex_h[-1] == actual:
             convex_h.append(lowest)
         if convex_h != None:
             for index, point in enumerate(convex_h):
