@@ -1,7 +1,8 @@
 from ConvexHull.point import Point as pt
 from ConvexHull.segment import Segment
 from ConvexHull.vector import Vector
-
+from random import randint
+import sys, pygame, time
 ''' Get the area of any convex polygon '''
 
 
@@ -90,72 +91,63 @@ def graham_scan(pts):
 
 ''' Lowest way to get the polygon that covers all the points'''
 
+def main():
+    points = list()  # list of all points
+    for i in range(0, 50):
+        x, y = randint(10.0, 490.0), randint(10.0, 490.0)
+        points.append(pt(x, y))
 
-def convex_hull(segs, pts):
+    pygame.init()
+
+    size = width, height = 500, 500
+    white = 255, 255, 255
+    blue = 0, 0, 255
+    red = 255, 0, 0
+    yellow = 255, 255, 0
+    green = 0, 255, 0
+    screen = pygame.display.set_mode(size)
+
+    segments = get_segments(points)
+    convex = None
+
     convex_elems = set()
-    for segment in segs:
-        point1, point2 = segment.point1, segment.point2
-        valid = True
-        other = Vector(point1, point2)
-        for point in pts:
-            if not is_convex(other, point, point1):  # Know if all points are to the right of that segment
-                valid = False
-        if valid:
-            convex_elems.add(segment)
-    return convex_elems
+    valid = True
+    index = 0
+    point_idx = 0
+    while 1:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+        screen.fill(white)
+        while index < len(segments):
+            point1, point2 = segments[index].point1, segments[index].point2
+            pygame.draw.line(screen, yellow, (point1.coords[0], point1.coords[1]), (point2.coords[0], point2.coords[1]))
+            other = Vector(point1, point2)
+            while point_idx < len(points):
+                pygame.draw.line(screen, green, (point1.coords[0], point1.coords[1]),
+                                 (points[point_idx].coords[0], points[point_idx].coords[1]))
+                if not is_convex(other, points[point_idx], point1):  # Know if all points are to the right of that segment
+                    valid = False
+                    point_idx = 0
+                    index += 1
 
-
-points = list()  # list of all points
-quantity = int(input())
-for i in range(quantity):
-    line = [int(num) for num in input().split()]
-    for pos in range(0, len(line) - 1, 2):
-        points.append(pt(line[pos], line[pos + 1]))
-
-'''for i in range(0, 50):
-    x, y = randint(10.0, 490.0), randint(10.0, 490.0)
-    points.append(pt(x, y))
-
-pygame.init()
-
-size = width, height = 500, 500
-white = 255, 255, 255
-blue = 0, 0, 255
-red = 255, 0, 0
-yellow = 255, 255, 0
-green = 0, 255, 0
-screen = pygame.display.set_mode(size)'''
-
-segments = get_segments(points)
-convex, convex_h = None, None
-# convex = convex_hull(segments, points)
-
-convex_h = graham_scan(points)
-convex_h.append(lowest_point(points))
-print(format(area(convex_h), '.2f'))
-
-'''
-while 1:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT: sys.exit()
-    screen.fill(white)
-    if convex_h != None:
-        for index, point in enumerate(convex_h):
-            if index + 1 < len(convex_h):
-                point1, point2 = point, convex_h[index + 1]
-                pygame.draw.line(screen, red, (abs(point1.coords[0]), abs(point1.coords[1])),
-                                 (abs(point2.coords[0]), abs(point2.coords[1])), 1)
-            else:
-                point2 = convex_h[0]
-                pygame.draw.line(screen, red, (abs(point.coords[0]), abs(point.coords[1])),
+                else:
+                    point_idx += 1
+                break
+            if point_idx == len(points):
+                convex_elems.add(segments[index])
+                point_idx = 0
+                index += 1
+            break
+        if len(convex_elems) > 0:
+            for seg in convex_elems:
+                point1, point2 = seg.point1, seg.point2
+                pygame.draw.line(screen, red, (point1.coords[0], point1.coords[1]),
                                  (point2.coords[0], point2.coords[1]), 1)
-    else:
-        for convex_pts in convex:
-            point1, point2 = convex_pts.point1, convex_pts.point2
-            pygame.draw.line(screen, red, (point1.coords[0], point1.coords[1]), (point2.coords[0], point2.coords[1]), 1)
+        for point in points:
+            pygame.draw.circle(screen, blue, (point.coords[0], point.coords[1]), 4, 0)
+        time.sleep(.005)
+        pygame.display.update()
 
-    for point in points:
-        pygame.draw.circle(screen, green, (point.coords[0], point.coords[1]), 4, 0)
 
-    pygame.display.flip()
-'''
+if __name__ == '__main__':
+   main()
