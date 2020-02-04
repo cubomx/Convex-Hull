@@ -64,31 +64,6 @@ def scan_angles(pts, lowest):
     return angles
 
 
-''' Faster way to get the convex hull by ordering by the angles from the pivot '''
-
-
-def graham_scan(pts):
-    lowest = lowest_point(pts)
-    angles = scan_angles(pts, lowest)
-
-    convex_el = list()
-    convex_el.append(lowest)
-    convex_el.append(angles.pop(0)[0].vector)
-    convex_el.append(angles.pop(0)[0].vector)
-    actual = angles.pop(0)[0].vector
-    while True:
-        vec_1 = Vector(convex_el[-2], convex_el[-1])
-        if not is_convex(vec_1, actual, convex_el[-2]):
-            convex_el.pop()
-        else:
-            convex_el.append(actual)
-            if len(angles) > 0:
-                actual = angles.pop(0)[0].vector
-            else:
-                break
-    return convex_el
-
-
 ''' Lowest way to get the polygon that covers all the points'''
 
 def main():
@@ -106,46 +81,49 @@ def main():
     yellow = 255, 255, 0
     green = 0, 255, 0
     screen = pygame.display.set_mode(size)
-
-    segments = get_segments(points)
-    convex = None
-
-    convex_elems = set()
-    valid = True
+    lowest = lowest_point(points)
+    angles = scan_angles(points, lowest)
+    convex_h = []
+    convex_h.append(lowest)
+    convex_h.append(angles.pop(0)[0].vector)
+    convex_h.append(angles.pop(0)[0].vector)
+    actual = angles.pop(0)[0].vector
     index = 0
     point_idx = 0
     while 1:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
         screen.fill(white)
-        while index < len(segments):
-            point1, point2 = segments[index].point1, segments[index].point2
-            pygame.draw.line(screen, yellow, (point1.coords[0], point1.coords[1]), (point2.coords[0], point2.coords[1]))
-            other = Vector(point1, point2)
-            while point_idx < len(points):
-                pygame.draw.line(screen, green, (point1.coords[0], point1.coords[1]),
-                                 (points[point_idx].coords[0], points[point_idx].coords[1]))
-                if not is_convex(other, points[point_idx], point1):  # Know if all points are to the right of that segment
-                    valid = False
-                    point_idx = 0
-                    index += 1
 
+
+        while True:
+            pygame.draw.line(screen, yellow, (convex_h[-1].coords[0], convex_h[-1].coords[1]), (actual.coords[0], actual.coords[1]))
+            vec_1 = Vector(convex_h[-2], convex_h[-1])
+            if not is_convex(vec_1, actual, convex_h[-2]):
+                convex_h.pop()
+            else:
+                convex_h.append(actual)
+                if len(angles) > 0:
+                    actual = angles.pop(0)[0].vector
                 else:
-                    point_idx += 1
-                break
-            if point_idx == len(points):
-                convex_elems.add(segments[index])
-                point_idx = 0
-                index += 1
+                    break
             break
-        if len(convex_elems) > 0:
-            for seg in convex_elems:
-                point1, point2 = seg.point1, seg.point2
-                pygame.draw.line(screen, red, (point1.coords[0], point1.coords[1]),
-                                 (point2.coords[0], point2.coords[1]), 1)
+        if len(angles) == 0:
+            convex_h.append(actual)
+            convex_h.append(lowest)
+        if convex_h != None:
+            for index, point in enumerate(convex_h):
+                if index + 1 < len(convex_h):
+                    point1, point2 = point, convex_h[index + 1]
+                    pygame.draw.line(screen, red, (abs(point1.coords[0]), abs(point1.coords[1])),
+                                     (abs(point2.coords[0]), abs(point2.coords[1])), 1)
+                else:
+                    point2 = convex_h[0]
+                    pygame.draw.line(screen, red, (abs(point.coords[0]), abs(point.coords[1])),
+                                     (point2.coords[0], point2.coords[1]), 1)
         for point in points:
             pygame.draw.circle(screen, blue, (point.coords[0], point.coords[1]), 4, 0)
-        time.sleep(.005)
+        time.sleep(.5)
         pygame.display.update()
 
 
