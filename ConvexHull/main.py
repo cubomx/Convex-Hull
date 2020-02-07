@@ -1,6 +1,9 @@
+import pygame, sys
+
 from ConvexHull.point import Point as pt
 from ConvexHull.segment import Segment
 from ConvexHull.vector import Vector
+from random import randint
 
 ''' Get the area of any convex polygon '''
 
@@ -106,13 +109,12 @@ def convex_hull(segs, pts):
 
 
 points = list()  # list of all points
-quantity = int(input())
-for i in range(quantity):
-    line = [int(num) for num in input().split()]
+'''for i in range(quantity):
+    
     for pos in range(0, len(line) - 1, 2):
-        points.append(pt(line[pos], line[pos + 1]))
+        points.append(pt(line[pos], line[pos + 1])'''
 
-'''for i in range(0, 50):
+for i in range(0, 50):
     x, y = randint(10.0, 490.0), randint(10.0, 490.0)
     points.append(pt(x, y))
 
@@ -124,7 +126,7 @@ blue = 0, 0, 255
 red = 255, 0, 0
 yellow = 255, 255, 0
 green = 0, 255, 0
-screen = pygame.display.set_mode(size)'''
+screen = pygame.display.set_mode(size)
 
 segments = get_segments(points)
 convex, convex_h = None, None
@@ -134,7 +136,7 @@ convex_h = graham_scan(points)
 convex_h.append(lowest_point(points))
 print(format(area(convex_h), '.2f'))
 
-'''
+
 while 1:
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
@@ -143,19 +145,18 @@ while 1:
         for index, point in enumerate(convex_h):
             if index + 1 < len(convex_h):
                 point1, point2 = point, convex_h[index + 1]
-                pygame.draw.line(screen, red, (abs(point1.coords[0]), abs(point1.coords[1])),
-                                 (abs(point2.coords[0]), abs(point2.coords[1])), 1)
+                pygame.draw.line(screen, red, (int(point1.coords[0]), int(point1.coords[1])),
+                                 (int(point2.coords[0]), int(point2.coords[1])), 1)
             else:
                 point2 = convex_h[0]
-                pygame.draw.line(screen, red, (abs(point.coords[0]), abs(point.coords[1])),
-                                 (point2.coords[0], point2.coords[1]), 1)
+                pygame.draw.line(screen, red, (int(point.coords[0]), int(point.coords[1])),
+                                 (int(point2.coords[0]), int(point2.coords[1])), 1)
     else:
         for convex_pts in convex:
             point1, point2 = convex_pts.point1, convex_pts.point2
             pygame.draw.line(screen, red, (point1.coords[0], point1.coords[1]), (point2.coords[0], point2.coords[1]), 1)
 
     for point in points:
-        pygame.draw.circle(screen, green, (point.coords[0], point.coords[1]), 4, 0)
+        pygame.draw.circle(screen, green, (int(point.coords[0]), int(point.coords[1])), 4, 0)
 
     pygame.display.flip()
-'''
