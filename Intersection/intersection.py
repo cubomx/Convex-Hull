@@ -3,13 +3,24 @@ from ConvexHull.segment import Segment as Seg
 import pygame, sys
 from time import sleep
 
+
+def orderEvents(points):
+    events = sorted(points, reverse=False, key=lambda x: x[1])
+    for i in range(0, len(points) - 1):
+        if points[i][1] == points[i+1][1]:
+            if points[i][0] > points[i+1][0]:
+                aux = points[i]
+                points[i] = points[i+1]
+                points[i+1] = aux
+    return events
+
+
 def main():
     segments = list()
     file = open("1.in", "r")
     content = file.read().split("\n")
     for index,  i in enumerate(content):
         if index > 0:
-            print("j")
             points = i.split()
             segments.append(Seg(Pt(int(points[0]), int(points[1])) , Pt(int(points[2]), int(points[3]))))
 
@@ -52,7 +63,6 @@ def main():
                 else:
                     active_segs.add(seg)
         for seg in active_segs:
-            print("h")
             pygame.draw.line(screen, other, (seg.point1.coords[0], seg.point1.coords[1]),
                              (seg.point2.coords[0], seg.point2.coords[1]))
 
