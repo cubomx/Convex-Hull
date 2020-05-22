@@ -1,77 +1,129 @@
-from ConvexHull.point import Point as Pt
-from ConvexHull.segment import Segment as Seg
-import pygame, sys
-from time import sleep
+from pprint import pprint
+
+eps = 1 ** -.3
 
 
-def orderEvents(points):
-    events = sorted(points, reverse=False, key=lambda x: x[1])
-    for i in range(0, len(points) - 1):
-        if points[i][1] == points[i+1][1]:
-            if points[i][0] > points[i+1][0]:
-                aux = points[i]
-                points[i] = points[i+1]
-                points[i+1] = aux
-    return events
+class Punto:
+    def __init__(self, x=0, y=0):
+        self.x = x
+        self.y = y
+
+    def __eq__(self, otro):
+        if abs(self.x - otro.x) < eps and abs(self.y - otro.y) < eps: return True
+        return False
+
+    def __lt__(self, otro):
+        if self.y > otro.y: return True
+        if self.y < otro.y: return False
+        if self.x < otro.x: return True
+        return False
+
+    def __repr__(self):
+        return f"({self.x},{self.y})"
+
+    def __hash__(self):
+        return self.x << 8 + self.y
 
 
-def main():
-    segments = list()
-    file = open("1.in", "r")
-    content = file.read().split("\n")
-    for index,  i in enumerate(content):
-        if index > 0:
-            points = i.split()
-            segments.append(Seg(Pt(int(points[0]), int(points[1])) , Pt(int(points[2]), int(points[3]))))
+class Cola:
+    def __init__(self):
+        self.q = []
 
-    pygame.init()
+    def __setitem__(self, punto, evento):
+        self.q.append((punto, evento))
+        self.q = sorted(self.q, key=lambda x: x[0])
 
-    size = (500, 500)
-    white = 255, 255, 255
-    blue = 0, 0, 255
-    red = 255, 0, 0
-    yellow = 255, 255, 0
-    green = 0, 255, 0
-    other = 100, 100, 100
-    screen = pygame.display.set_mode(size)
-    barrier = Seg(Pt(0, 0), Pt(size[0] - 1, 0))
-    point_y = 0
-    active_segs = set()
-    while 1:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT: sys.exit()
-        screen.fill(white)
-        for seg in segments:
-            pygame.draw.line(screen, blue, (seg.point1.coords[0], seg.point1.coords[1]),
-                             (seg.point2.coords[0], seg.point2.coords[1]))
-            valid = False
-            y = barrier.point1.coords[1] + point_y
+    def __getitem__(self, punto):
+        for i in self.q:
+            if i[0] == punto: return i[1]
 
-            if seg.point1.coords[1] != y:
-                pygame.draw.circle(screen, green, (seg.point1.coords[0], seg.point1.coords[1]), 4, 0)
-            else:
-                valid = True
-                pygame.draw.circle(screen, red, (seg.point1.coords[0], seg.point1.coords[1]), 4, 0)
-            if seg.point2.coords[1] != y:
-                pygame.draw.circle(screen, green, (seg.point2.coords[0], seg.point2.coords[1]), 4, 0)
-            else:
-                valid = True
-                pygame.draw.circle(screen, red, (seg.point2.coords[0], seg.point2.coords[1]), 4, 0)
-            if valid:
-                if seg in active_segs:
-                    active_segs.remove(seg)
-                else:
-                    active_segs.add(seg)
-        for seg in active_segs:
-            pygame.draw.line(screen, other, (seg.point1.coords[0], seg.point1.coords[1]),
-                             (seg.point2.coords[0], seg.point2.coords[1]))
+    def __contains__(self, punto):
+        for i in self.q:
+            if i[0] == punto: return True
+        return False
 
-        pygame.draw.line(screen, yellow, (barrier.point1.coords[0], y), (barrier.point2.coords[0], y))
-        sleep(.5)
-        if barrier.point1.coords[1] + point_y + 1 < size[0]:
-            point_y += 1
-        pygame.display.update()
+    def __repr__(self):
+        return repr(self.q)
+
+    def __bool__(self):
+        return bool(self.q)
 
 
-if __name__ =='__main__':
-    main()
+class Segmento:
+    def __init__(self, p1=Punto(), p2=Punto()):
+        self.puntos = sorted([p1, p2])
+
+    def __repr__(self):
+        return f"[{self.puntos[0]}, {self.puntos[1]}]"
+
+    def __hash__(self):
+        return hash(tuple(self.puntos))
+
+
+class Evento:
+    def __init__(self, c=Punto(0, 0)):
+        self.coord = c
+        self.I = set()  # Inician en c
+        self.T = set()  # Terminan en c
+        self.C = set()  # Se intersecan en c
+
+    def __iadd__(self, otro):
+        self.I |= otro.I  # union
+        self.T |= otro.T  # union
+        self.C |= otro.C  # union
+
+    def __hash__(self):
+        return hash(self.coord)
+
+    def __repr__(self):
+        return f"--{self.coord}:: I:{self.I}, T:{self.T}, C:{self.C}"
+
+
+class Eventos:
+    def __init__(self):
+        self.eventos = Cola()
+
+    def add(self, evento=Evento()):
+        if evento.coord in self.eventos:
+            self.eventos[evento.coord] += evento
+        else:
+            self.eventos[evento.coord] = evento
+
+    def __bool__(self):
+        return bool(self.eventos)
+
+    def __repr__(self):
+        return hash(self.eventos)
+
+
+class Barrido:
+    def __init__(self):
+        self.segmentos = []
+
+
+Q = Eventos()
+T = Barrido()
+
+s1 = Segmento(Punto(0, 0), Punto(10, 10))
+s2 = Segmento(Punto(2, 1), Punto(1, 2))
+
+segmentos = [s1, s2]
+
+print(segmentos)
+
+for s in segmentos:
+    p1, p2 = s.puntos
+
+    e = Evento(p1)
+    e.I.add(s)
+    Q.add(e)
+
+    e = Evento(p2)
+    e.T.add(s)
+    Q.add(e)
+
+for q in Q.eventos.q:
+    print(q[1])
+
+while Q:
+    Q
