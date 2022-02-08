@@ -1,4 +1,4 @@
-from ConvexHull.point import Point
+from point import Point
 from math import atan2
 
 

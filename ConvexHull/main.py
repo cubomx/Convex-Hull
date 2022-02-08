@@ -1,6 +1,6 @@
-from ConvexHull.point import Point as pt
-from ConvexHull.segment import Segment
-from ConvexHull.vector import Vector
+from point import Point as pt
+from segment import Segment
+from vector import Vector
 from random import randint
 import sys, pygame, time
 ''' Get the area of any convex polygon '''
